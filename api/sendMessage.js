@@ -1,6 +1,36 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { JSONFilePreset as createDatabase } from "lowdb/node";
 
+class WhatsAppClient {
+    constructor (authKey) {
+        this.authKey = authKey;
+    }
+
+    async makeRequest(url, init = {}) {
+        let headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "authorization": "Bearer " + this.authKey
+        }
+
+        let n = Object.assign({ headers }, init);
+        let a = await fetch(url, n);
+        let b = await a.json();
+        return b;
+    }
+
+    async checkAlive() {
+        let d = await this.makeRequest("https://gate.whapi.cloud/health?wakeup=true&channel_type=web");
+        return (d.status.text === "AUTH");
+    }
+
+    async sendTextMessage(to, message) {
+        let info = { to, body: message, no_link_preview: false };
+        let res = await this.makeRequest("https://gate.whapi.cloud/messages/text", { method: "POST", body: JSON.stringify(info) });
+        return res.send;
+    }
+}
+
 async function makeRequest(prompt) {
     const GEN_AI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
     const MODEL = GEN_AI.getGenerativeModel({ model: "gemini-pro" });
@@ -13,7 +43,7 @@ export async function GET() {
     const db = await createDatabase("db.json", []);
     const article_link = db.data[0];
 
-    if (!article_link) { return new Response("No more links available.") };
+    if (!article_link) { return new Response("No more links available.", { status: 400 }) };
 
     let textFromAI = await Promise.all([
         makeRequest("Dame el título de este articulo " + article_link),
@@ -22,11 +52,10 @@ export async function GET() {
 
     const message = `*${textFromAI[0]}*`.concat(`\n${textFromAI[1]}`, `\nObtenido desde ${article_link}\n_ANEICBot_`);
     await db.update((data) => data.pop());
-    
-    return new Response(message);
-    // let b = await checkWhatsAppAlive();
 
-    // let wh = new WhatsAppClient("");
-    // console.log(await wh.sendMessage("", a));
+    let whatsappClient = new WhatsAppClient(process.env.WHAPI_CLOUD_API_KEY);
+    let isSend = whatsappClient.sendTextMessage(process.env.WHATSAPP_CHANNEL_ID, message);
 
+    if (!isSend) { return new Response("Message wasn't send.", { status: 500 }) };
+    return new Response("Message send succefully.");
 };

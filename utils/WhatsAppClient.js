@@ -11,9 +11,6 @@ export class WhatsAppClient {
         }
 
         let n = Object.assign({ headers }, init);
-
-        console.log(n);
-
         let a = await fetch(url, n);
         let b = await a.json();
         return b;
@@ -24,13 +21,9 @@ export class WhatsAppClient {
         return (d.status.text === "AUTH");
     }
 
-    async sendMessage(to, message) {
-        let a = { to, body: message }
-
-        let pet = await this.makeRequest("https://gate.whapi.cloud/messages/text", {
-            method: "POST", body: JSON.stringify(a),
-        })
-
-        return pet;
+    async sendTextMessage(to, message) {
+        let info = { to, body: message, no_link_preview: false };
+        let res = await this.makeRequest("https://gate.whapi.cloud/messages/text", { method: "POST", body: JSON.stringify(info) });
+        return res.send;
     }
 }

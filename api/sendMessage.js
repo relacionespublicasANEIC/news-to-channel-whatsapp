@@ -27,7 +27,7 @@ class WhatsAppClient {
     async sendTextMessage(to, message) {
         let info = { to, body: message, no_link_preview: false };
         let res = await this.makeRequest("https://gate.whapi.cloud/messages/text", { method: "POST", body: JSON.stringify(info) });
-        return res.send;
+        return res.sent;
     }
 }
 
@@ -54,8 +54,8 @@ export async function GET() {
     await db.update((data) => data.pop());
 
     let whatsappClient = new WhatsAppClient(process.env.WHAPI_CLOUD_API_KEY);
-    let isSend = whatsappClient.sendTextMessage(process.env.WHATSAPP_CHANNEL_ID, message);
+    let isSend = await whatsappClient.sendTextMessage(process.env.WHATSAPP_CHANNEL_ID, message);
 
     if (!isSend) { return new Response("Message wasn't send.", { status: 500 }) };
-    return new Response("Message send succefully.");
+    return new Response("Message send succefully. There are " + db.data.length + " articles queued.");
 };

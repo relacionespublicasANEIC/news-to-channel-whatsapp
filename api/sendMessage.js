@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { JSONFilePreset as createDatabase } from "lowdb/node";
+import { kv } from "@vercel/kv";
 
 class WhatsAppClient {
     constructor (authKey) {
@@ -39,10 +39,16 @@ async function makeRequest(prompt) {
     return result.response.text();
 };
 
-export async function GET() {
-    const db = await createDatabase("db.json", []);
-    const article_link = db.data[0];
+async function getArticleLink() {
+    try {
+        return await kv.srandmember("links");
+    } catch (e) {
+        return false;
+    }
+}
 
+export async function GET() {
+    const article_link = await getArticleLink();
     if (!article_link) { return new Response("No more links available.", { status: 400 }) };
 
     let textFromAI = await Promise.all([
@@ -51,11 +57,12 @@ export async function GET() {
     ]);
 
     const message = `*${textFromAI[0]}*`.concat(`\n${textFromAI[1]}`, `\nObtenido desde ${article_link}\n_ANEICBot_`);
-    await db.update((data) => data.pop());
+    await kv.srem("links", article_link);
 
     let whatsappClient = new WhatsAppClient(process.env.WHAPI_CLOUD_API_KEY);
     let isSend = await whatsappClient.sendTextMessage(process.env.WHATSAPP_CHANNEL_ID, message);
 
+    let totalItems = await kv.scard();
     if (!isSend) { return new Response("Message wasn't send.", { status: 500 }) };
-    return new Response("Message send succefully. There are " + db.data.length + " articles queued.");
+    return new Response("Message send succefully. There are " + totalItems + " articles queued.");
 };

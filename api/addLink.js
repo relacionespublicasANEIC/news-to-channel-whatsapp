@@ -1,4 +1,4 @@
-import { JSONFilePreset as createDatabase } from "lowdb/node";
+import { kv } from "@vercel/kv";
 
 function isURL(text) {
     try {
@@ -14,7 +14,6 @@ export default async function handler(req, res) {
         return res.status(400).send("Invalid url");
     };
 
-    const db = await createDatabase("db.json", []);
-    await db.update((d) => d.push(req.query.link));
+    await kv.sadd("links", req.query.link);
     return res.send("A link has been added.");
 };

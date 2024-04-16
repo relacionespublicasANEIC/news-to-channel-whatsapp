@@ -62,7 +62,7 @@ export async function GET() {
     let whatsappClient = new WhatsAppClient(process.env.WHAPI_CLOUD_API_KEY);
     let isSend = await whatsappClient.sendTextMessage(process.env.WHATSAPP_CHANNEL_ID, message);
 
-    let totalItems = await kv.scard();
+    let totalItems = await kv.scard("links");
     if (!isSend) { return new Response("Message wasn't send.", { status: 500 }) };
     return new Response("Message send succefully. There are " + totalItems + " articles queued.");
 };

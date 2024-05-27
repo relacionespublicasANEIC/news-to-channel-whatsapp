@@ -1,8 +1,9 @@
 {
-	"crons":[
-		{
-			"path": "/api/sendMessage",
-			"schedule": "0 0 * * *"
-		}
-	]
+    "outputDirectory": "pages",
+    "crons": [
+        {
+            "path": "/api/sendMessage",
+            "schedule": "0 0 * * *"
+        }
+    ]
 }

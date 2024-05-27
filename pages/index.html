@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANEIC Colombia Bot</title>
+</head>
+
+<body>
+    <form action="/api/addLink">
+        <fieldset>
+            <legend>Enviar link de un artículo</legend>
+            <input type="text" placeholder="Link del artículo" name="link">
+            <input type="submit">
+        </fieldset>
+    </form>
+
+    <section>
+        <fieldset>
+            <legend>Lista de links de artículos</legend>
+            <button id="load_links">Cargar</button>
+            <div id="links"></div>
+            <script>
+                document.getElementById("load_links").addEventListener("click", async function () {
+                    document.getElementById("links").innerText = "Cargando...";
+                    let res = await fetch("/api/getCurrentLinks");
+                    let json = await res.json();
+                    document.getElementById("links").innerText = json.join("\n");
+                });
+            </script>
+        </fieldset>
+    </section>
+</body>
+
+</html>

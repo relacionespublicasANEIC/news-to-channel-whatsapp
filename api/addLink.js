@@ -1,4 +1,5 @@
-import { kv } from "@vercel/kv";
+import { kv as database } from "@vercel/kv";
+const { DATABASE_NAME } = process.env;
 
 function isURL(text) {
     try {
@@ -10,10 +11,7 @@ function isURL(text) {
 };
 
 export default async function handler(req, res) {
-    if (!req.query.link || !isURL(req.query.link)) {
-        return res.status(400).send("Invalid url");
-    };
-
-    await kv.sadd("links", req.query.link);
+    if (!req.query.link || !isURL(req.query.link)) { return res.status(400).send("Invalid url") };
+    await database.sadd(DATABASE_NAME, req.query.link);
     return res.send("A link has been added.");
 };

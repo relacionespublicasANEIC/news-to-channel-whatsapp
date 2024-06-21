@@ -3,7 +3,7 @@
     "crons": [
         {
             "path": "/api/sendMessage",
-            "schedule": "0 0 * * *"
+            "schedule": "0 0 */3 * *"
         }
     ]
 }
